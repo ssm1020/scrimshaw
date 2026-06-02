@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Anaconda / virtual envs
+.conda/
+env/
+venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Data files (optional — remove if you want CSVs tracked)
+*.csv
+*.xlsx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter (just in case)
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+*.code-workspace
