@@ -100,21 +100,47 @@ m6.metric("No-Show Rate",     f"{no_show_rate:.1f}%")
 st.markdown("---")
 
 # ── REVENUE OVER TIME ─────────────────────────────────────────────────────────
-# st.subheader("Revenue Over Time")
-# st.line_chart(summary.set_index("date")["revenue"])
+###### LAYERS #########
+#tool tip point
+nearest=alt.selection_point(
+    nearest=True, on="mouseover", fields=["date"],empty=False
+)
 
-revenue_over_time_chart = alt.Chart(summary).mark_line().encode(
+#Base line
+line = alt.Chart(summary).mark_line(color="#00e5a0").encode(
     x=alt.X("date:T", title="Date"),
-    y=alt.Y("revenue:Q",title="Revenue",axis=alt.Axis(format="$,.0f")),
+    y=alt.Y("revenue:Q",title="Revenue",axis=alt.Axis(format="$,.0f"))
+)
+
+# Invisible points on the line to trigger selection
+selectors=alt.Chart(summary).mark_point().encode(
+    x="date:T",
+    y="revenue:Q",
+    opacity=alt.value(0),
     tooltip=[
         alt.Tooltip("date:T",title="Date"),
         alt.Tooltip("revenue:Q",title="Revenue",format="$,.0f")
     ]
-).properties(
-    height=300
-).interactive(bind_y=False)
+).add_params(nearest)
 
-st.altair_chart(revenue_over_time_chart, use_container_width=True)
+#Vertical rule that follows the mouse
+rule= alt.Chart(summary).mark_rule(color="gray").encode(
+    x="date:T",
+    opacity=alt.condition(nearest,alt.value(0.5),alt.value(0)),
+).transform_filter(nearest)
+
+#Dot that appears on the line at selected point
+point = line.mark_point(color="#00e5a0",size=60).encode(
+    opacity=alt.condition(nearest, alt.value(1),alt.value(0))
+).transform_filter(nearest)
+
+###### BUILDING #########
+#Chart
+chart = alt.layer(line, selectors, rule, point).properties(
+    height=300
+)
+
+st.altair_chart(chart,use_container_width=True)
 
 st.markdown("---")
 
