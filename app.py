@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 from datetime import timedelta
 from data import (
     load_all,
@@ -99,8 +100,21 @@ m6.metric("No-Show Rate",     f"{no_show_rate:.1f}%")
 st.markdown("---")
 
 # ── REVENUE OVER TIME ─────────────────────────────────────────────────────────
-st.subheader("Revenue Over Time")
-st.line_chart(summary.set_index("date")["revenue"])
+# st.subheader("Revenue Over Time")
+# st.line_chart(summary.set_index("date")["revenue"])
+
+revenue_over_time_chart = alt.Chart(summary).mark_line().encode(
+    x=alt.X("date:T", title="Date"),
+    y=alt.Y("revenue:Q",title="Revenue",axis=alt.Axis(format="$,.0f")),
+    tooltip=[
+        alt.Tooltip("date:T",title="Date"),
+        alt.Tooltip("revenue:Q",title="Revenue",format="$,.0f")
+    ]
+).properties(
+    height=300
+).interactive(bind_y=False)
+
+st.altair_chart(revenue_over_time_chart, use_container_width=True)
 
 st.markdown("---")
 
