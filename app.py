@@ -18,7 +18,8 @@ from data import (
 )
 #Pull in visual functions
 from visuals import(
-    crosshair_line_chart
+    crosshair_line_chart,
+    crosshair_bar_chart
 )
 
 # ── PAGE CONFIG ───────────────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ if col1.button("Last 7 Days"):
     st.session_state["date_range"] = "7d"
 if col2.button("Last 30 Days"):
     st.session_state["date_range"] = "30d"
-if st.sidebar.button("All Time", use_container_width=True):
+if st.sidebar.button("All Time", width='stretch'):
     st.session_state["date_range"] = "all"
 
 st.sidebar.markdown("**Or pick a range**")
@@ -105,27 +106,38 @@ m6.metric("No-Show Rate",     f"{no_show_rate:.1f}%")
 st.markdown("---")
 
 # ── REVENUE OVER TIME ─────────────────────────────────────────────────────────
-#Pulling in line chart function from app.py
+#Pulling in line chart function from visuals.py
 st.altair_chart(
     crosshair_line_chart(summary,"date","revenue","Date","Revenue","$,.0f"),
-    use_container_width=True
+    width='stretch'
     )
 
 st.markdown("---")
 
 # ── REVENUE BREAKDOWN ─────────────────────────────────────────────────────────
 st.subheader("Revenue Breakdown")
+#Set side by side containers
 col_a, col_b = st.columns(2)
 
+#### COLUMN A - By category bar chart ####
 with col_a:
     st.markdown("**By Category**")
+    #Set data
     cat_df = revenue_by_category(pos_f)
-    st.bar_chart(cat_df.set_index("category")["revenue"])
-
+    print(cat_df.columns.tolist())
+    #Pulling in bar chart function rom visuals.py
+    st.altair_chart(
+        crosshair_bar_chart(cat_df, "category", "revenue", "Category", "Revenue", "$,.0f")
+        )
+#### COLUMN B - By day of the week bar chart ####
 with col_b:
     st.markdown("**By Day of Week**")
+    #Set data
     dow_df = revenue_by_dow(pos_f)
-    st.bar_chart(dow_df.set_index("day_of_week")["avg_revenue"])
+    #Pulling in bar chart function rom visuals.py
+    st.altair_chart(
+        crosshair_bar_chart(dow_df, "day_of_week", "revenue", "Day", "Revenue", "$,.0f",sort=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"])
+                    )
 
 st.markdown("---")
 
@@ -134,7 +146,7 @@ st.subheader("Top 10 Items by Revenue")
 items_df = top_items(pos_f, n=10)
 st.dataframe(
     items_df[["item_name", "category", "qty_sold", "revenue"]],
-    use_container_width=True,
+    width='stretch',
     hide_index=True
 )
 
@@ -162,7 +174,7 @@ col_e, col_f = st.columns(2)
 with col_e:
     st.markdown("**Status Breakdown**")
     status_df = res_f.groupby("status").size().reset_index(name="count")
-    st.dataframe(status_df, use_container_width=True, hide_index=True)
+    st.dataframe(status_df, width='stretch', hide_index=True)
 
 with col_f:
     st.markdown("**Covers by Source**")
@@ -176,7 +188,7 @@ st.subheader("Online Orders")
 onl_df = online_summary(onl_f)
 st.dataframe(
     onl_df[["platform","orders","gross_revenue","platform_fees","net_revenue","avg_rating"]],
-    use_container_width=True,
+    width='stretch',
     hide_index=True
 )
 
