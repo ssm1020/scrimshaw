@@ -1,5 +1,6 @@
 import streamlit as st
 import altair as alt
+############################################################################################################
 #### Line chart with crosshair and tooltip
 def crosshair_line_chart(df, x_field, y_field, x_title, y_title, y_format, color="#00e5a0", height=300):
     ### LAYERS ###
@@ -32,6 +33,7 @@ def crosshair_line_chart(df, x_field, y_field, x_title, y_title, y_format, color
 
     return alt.layer(line, selectors, rule, point).properties(height=height)
 
+############################################################################################################
 #### Bar chart with crosshair and tooltip
 def crosshair_bar_chart(df, x_field, y_field, x_title, y_title, y_format, color="#00e5a0", height=300, sort=None):
     nearest = alt.selection_point(
@@ -64,3 +66,36 @@ def crosshair_bar_chart(df, x_field, y_field, x_title, y_title, y_format, color=
     )
 
     return alt.layer(highlight, selectors, rule).properties(height=height)
+############################################################################################################
+#### Basic Table
+def styled_table(df, columns, width="stretch", hide_index=True):
+    """
+    Render a dataframe with renamed headers and optional number formatting.
+
+    columns: dict mapping source column name -> spec dict with keys:
+        "label":  display name (required)
+        "format": d3/printf format string for NumberColumn (optional)
+
+    Example:
+        styled_table(items_df, {
+            "item_name":  {"label": "Item"},
+            "category":   {"label": "Category"},
+            "qty_sold":   {"label": "Quantity Sold", "format": "%d"},
+            "revenue":    {"label": "Revenue", "format": "$%.2f"},
+        })
+    """
+    source_cols = list(columns.keys())
+    rename_map = {src: spec["label"] for src, spec in columns.items()}
+
+    column_config = {
+        spec["label"]: st.column_config.NumberColumn(format=spec["format"])
+        for spec in columns.values()
+        if "format" in spec
+    }
+
+    st.dataframe(
+        df[source_cols].rename(columns=rename_map),
+        column_config=column_config,
+        width=width,
+        hide_index=hide_index,
+    )

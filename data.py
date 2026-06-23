@@ -36,7 +36,7 @@ def daily_summary(pos, labor):
     )
 
     summary = daily_rev.merge(daily_labor, on="date", how="left")
-    summary["labor_pct"]     = (summary["labor_cost"] / summary["revenue"] * 100).round(1)
+    summary["labor_pct"]     = (summary["labor_cost"] / summary["revenue"]).round(1)
     summary["avg_order_val"] = (summary["revenue"] / summary["orders"]).round(2)
     summary["day_of_week"]   = summary["date"].dt.day_name()
 

@@ -19,7 +19,8 @@ from data import (
 #Pull in visual functions
 from visuals import(
     crosshair_line_chart,
-    crosshair_bar_chart
+    crosshair_bar_chart,
+    styled_table
 )
 
 # ── PAGE CONFIG ───────────────────────────────────────────────────────────────
@@ -124,7 +125,6 @@ with col_a:
     st.markdown("**By Category**")
     #Set data
     cat_df = revenue_by_category(pos_f)
-    print(cat_df.columns.tolist())
     #Pulling in bar chart function rom visuals.py
     st.altair_chart(
         crosshair_bar_chart(cat_df, "category", "revenue", "Category", "Revenue", "$,.0f")
@@ -144,11 +144,13 @@ st.markdown("---")
 # ── TOP ITEMS ─────────────────────────────────────────────────────────────────
 st.subheader("Top 10 Items by Revenue")
 items_df = top_items(pos_f, n=10)
-st.dataframe(
-    items_df[["item_name", "category", "qty_sold", "revenue"]],
-    width='stretch',
-    hide_index=True
-)
+#Call styled_table function from visuals.py
+styled_table(items_df, {
+            "item_name":  {"label": "Item"},
+            "category":   {"label": "Category"},
+            "qty_sold":   {"label": "Quantity Sold", "format": "%d"},
+            "revenue":    {"label": "Revenue", "format": "$%.2f"},
+        })
 
 st.markdown("---")
 
@@ -158,12 +160,21 @@ col_c, col_d = st.columns(2)
 
 with col_c:
     st.markdown("**Cost by Role**")
+    #Set data
     labor_df = labor_by_role(labor_f)
-    st.bar_chart(labor_df.set_index("role")["total_cost"])
+    #Pulling in bar chart function rom visuals.py "role" "total_cost"
+    st.altair_chart(
+        crosshair_bar_chart(labor_df, "role", "total_cost", "Role", "Total Cost", "$,.0f")
+        )
 
 with col_d:
     st.markdown("**Labor % vs Revenue (Daily)**")
-    st.line_chart(summary.set_index("date")["labor_pct"])
+    #Pulling in line chart function
+    # summary date labor_pct
+    st.altair_chart(
+    crosshair_line_chart(summary,"date","labor_pct","Date","Labor %",".1~%"),
+    width='stretch'
+    )
 
 st.markdown("---")
 
@@ -174,22 +185,34 @@ col_e, col_f = st.columns(2)
 with col_e:
     st.markdown("**Status Breakdown**")
     status_df = res_f.groupby("status").size().reset_index(name="count")
-    st.dataframe(status_df, width='stretch', hide_index=True)
+    #Call styled_table function from visuals.py
+    styled_table(status_df, {
+            "status":  {"label": "Status"},
+            "count":   {"label": "Count"}
+            }
+    )
 
 with col_f:
     st.markdown("**Covers by Source**")
     source_df = covers_by_source(res_f)
-    st.bar_chart(source_df.set_index("source")["covers"])
+    #Pulling in bar chart function rom visuals.py "source" "covers"
+    st.altair_chart(
+        crosshair_bar_chart(source_df, "source", "covers", "Source", "Covers", "d")
+        )
 
 st.markdown("---")
 
 # ── ONLINE ORDERS ─────────────────────────────────────────────────────────────
 st.subheader("Online Orders")
 onl_df = online_summary(onl_f)
-st.dataframe(
-    onl_df[["platform","orders","gross_revenue","platform_fees","net_revenue","avg_rating"]],
-    width='stretch',
-    hide_index=True
+styled_table(onl_df, {
+            "platform":  {"label": "Platform"},
+            "orders":   {"label": "Orders"},
+            "gross_revenue":  {"label": "Gross Revenue","format": "$%.2f"},
+            "platform_fees":   {"label": "Platform Fees","format": "$%.2f"},
+            "net_revenue":  {"label": "Net Revenue","format": "$%.2f"},
+            "avg_rating":   {"label": "Avg Rating"},
+            }
 )
 
 st.markdown("---")
@@ -201,7 +224,10 @@ col_g, col_h = st.columns(2)
 with col_g:
     st.markdown("**Waste Cost by Category**")
     waste_df = waste_by_category(inv_f)
-    st.bar_chart(waste_df.set_index("category")["waste_cost"])
+    #Pulling in bar chart function rom visuals.py "category" "waste_cost"
+    st.altair_chart(
+        crosshair_bar_chart(waste_df, "category", "waste_cost", "category", "Waste Cost", "$,.0f")
+        )
 
 with col_h:
     st.markdown("**Food Cost Summary**")
