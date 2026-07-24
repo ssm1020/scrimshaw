@@ -79,6 +79,11 @@ res_f   = filter_by_date(res,       start_date, end_date)
 inv_f   = filter_by_date(inventory, start_date, end_date)
 onl_f   = filter_by_date(online,    start_date, end_date)
 
+# ── CHECK FOR EMPTY DATA IN DATE RANGE ───────────────────────────────────────────────────────────────
+if pos_f.empty:
+    st.info("No data in this range — try a different date range.")
+    st.stop()
+
 # ── HEADER ────────────────────────────────────────────────────────────────────
 st.title("Restaurant Performance Dashboard")
 st.caption(f"Showing {start_date.strftime('%b %d, %Y')} → {end_date.strftime('%b %d, %Y')}")
