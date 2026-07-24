@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 # ── CONFIG ───────────────────────────────────────────────────────────────────
-DATA_DIR = Path("C:\\Users\\Sam\\Documents\\GitHub\\scrimshaw\\data")  # put all your CSVs in a /data folder
+DATA_DIR = Path(__file__).parent / "data"
 
 # ── LOADERS ──────────────────────────────────────────────────────────────────
 def load_all():
