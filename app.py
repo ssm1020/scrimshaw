@@ -68,16 +68,34 @@ else:
 start_date = st.sidebar.date_input("Start date", value=default_start, min_value=min_date, max_value=max_date)
 end_date   = st.sidebar.date_input("End date",   value=max_date,      min_value=min_date, max_value=max_date)
 
+# - Get dates of last current period (week, 30 days, etc) -
+#days in current period
+period_length=(end_date-start_date).days + 1
+#get previoud period
+prev_start = start_date - timedelta(days=period_length)
+prev_end = start_date - timedelta(days=1)
+
+
+
+
 # ── FILTER DATA ───────────────────────────────────────────────────────────────
 def filter_by_date(df, start, end, col="date"):
     mask = (df[col].dt.date >= start) & (df[col].dt.date <= end)
     return df[mask]
 
+#Current
 pos_f   = filter_by_date(pos,       start_date, end_date)
 labor_f = filter_by_date(labor,     start_date, end_date)
 res_f   = filter_by_date(res,       start_date, end_date)
 inv_f   = filter_by_date(inventory, start_date, end_date)
 onl_f   = filter_by_date(online,    start_date, end_date)
+
+#Prior Period
+pos_pp   = filter_by_date(pos,       prev_start, prev_end)
+labor_pp = filter_by_date(labor,     prev_start, prev_end)
+res_pp   = filter_by_date(res,       prev_start, prev_end)
+inv_pp   = filter_by_date(inventory, prev_start, prev_end)
+onl_pp  = filter_by_date(online,    prev_start, prev_end)
 
 # ── CHECK FOR EMPTY DATA IN DATE RANGE ───────────────────────────────────────────────────────────────
 if pos_f.empty:
@@ -88,8 +106,8 @@ if pos_f.empty:
 st.title("Restaurant Performance Dashboard")
 st.caption(f"Showing {start_date.strftime('%b %d, %Y')} → {end_date.strftime('%b %d, %Y')}")
 st.markdown("---")
-
 # ── TOP METRICS ───────────────────────────────────────────────────────────────
+#CURRENT
 summary = daily_summary(pos_f, labor_f)
 fc      = food_cost_summary(inv_f)
 rs      = reservation_summary(res_f)
@@ -101,13 +119,40 @@ avg_order_val    = summary["avg_order_val"].mean()
 total_food_cost  = fc["total_food_cost"]
 no_show_rate     = rs["no_show_rate"]
 
+#PRIOR PERIOD
+summary_pp = daily_summary(pos_pp, labor_pp)
+fc_pp      = food_cost_summary(inv_pp)
+rs_pp      = reservation_summary(res_pp)
+
+total_revenue_pp    = summary_pp["revenue"].sum()
+total_labor_cost_pp = summary_pp["labor_cost"].sum()
+avg_labor_pct_pp    = summary_pp["labor_pct"].mean()
+avg_order_val_pp    = summary_pp["avg_order_val"].mean()
+total_food_cost_pp  = fc_pp["total_food_cost"]
+no_show_rate_pp     = rs_pp["no_show_rate"]
+
+#CREATE DELTAS USING PPs
+#Create pct change helper
+def pct_change(current, previous):
+    if previous == 0:
+        return None
+    return (current - previous) / previous
+
+revenue_delta = pct_change(total_revenue,total_revenue_pp)
+labor_cost_delta = pct_change(total_labor_cost,total_labor_cost_pp)
+labor_pct_delta = avg_labor_pct-avg_labor_pct_pp
+avg_order_delta = pct_change(avg_order_val,avg_order_val_pp)
+food_cost_delta = pct_change(total_food_cost,total_food_cost_pp)
+no_show_delta = no_show_rate-no_show_rate_pp
+
+#ACTUAL METRICS DISPLAYED W/DELTA's
 m1, m2, m3, m4, m5, m6 = st.columns(6)
-m1.metric("Total Revenue",    f"${total_revenue:,.0f}")
-m2.metric("Labor Cost",       f"${total_labor_cost:,.0f}")
-m3.metric("Avg Labor %",      f"{avg_labor_pct:.1f}%")
-m4.metric("Avg Order Value",  f"${avg_order_val:.2f}")
-m5.metric("Food Cost",        f"${total_food_cost:,.0f}")
-m6.metric("No-Show Rate",     f"{no_show_rate:.1f}%")
+m1.metric("Total Revenue",    f"${total_revenue:,.0f}", delta=f"{revenue_delta:+.1%}"  if revenue_delta is not None else None)
+m2.metric("Labor Cost",       f"${total_labor_cost:,.0f}", delta=f"{labor_cost_delta:+.1%}"  if labor_cost_delta is not None else None)
+m3.metric("Avg Labor %",      f"{avg_labor_pct:.1f}%", delta=f"{labor_pct_delta:+.1f}pp", delta_color="inverse")
+m4.metric("Avg Order Value",  f"${avg_order_val:.2f}", delta=f"{avg_order_delta:+.1%}"  if avg_order_delta is not None else None)
+m5.metric("Food Cost",        f"${total_food_cost:,.0f}", delta=f"{food_cost_delta:+.1%}"  if food_cost_delta is not None else None)
+m6.metric("No-Show Rate",     f"{no_show_rate:.1f}%", delta=f"{no_show_delta:+.1f}pp", delta_color="inverse")
 
 st.markdown("---")
 
