@@ -36,7 +36,7 @@ def daily_summary(pos, labor):
     )
 
     summary = daily_rev.merge(daily_labor, on="date", how="left")
-    summary["labor_pct"]     = (summary["labor_cost"] / summary["revenue"]*100).round(1)
+    summary["labor_pct"]     = (summary["labor_cost"] / summary["revenue"]).round(1)
     summary["avg_order_val"] = (summary["revenue"] / summary["orders"]).round(2)
     summary["day_of_week"]   = summary["date"].dt.day_name()
 
@@ -106,7 +106,7 @@ def reservation_summary(res):
         "seated":             int(seated),
         "no_shows":           int(no_shows),
         "cancellations":      int(cancelled),
-        "no_show_rate":       round(no_shows / total * 100, 1),
+        "no_show_rate":       round(no_shows / total, 1),
     }
 
 def covers_by_source(res):
@@ -142,7 +142,7 @@ def food_cost_summary(inventory):
     return {
         "total_food_cost": round(total_food_cost, 2),
         "total_waste_cost": round(total_waste, 2),
-        "waste_pct_of_food_cost": round(total_waste / total_food_cost * 100, 1),
+        "waste_pct_of_food_cost": round(total_waste / total_food_cost, 1),
     }
 
 def waste_by_category(inventory):
